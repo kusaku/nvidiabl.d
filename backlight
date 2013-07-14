@@ -1,0 +1,57 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          backlight
+# Required-Start:    $acpid
+# Required-Stop:
+# Default-Start:     5
+# Default-Stop:      0 1 2 3 6
+# Short-Description: Provides a backlight event handler for nvidiabl
+# Description:       Captures all backlight events from ACPI Events and feeds them to nvidiabl.
+### END INIT INFO
+
+start() {
+/etc/init.d/backlight run &
+}
+
+stop() {
+killall -r backlight
+}
+
+run() {
+while [ exit != 130 ]
+do
+
+# Halfsecond sleeping
+sleep 0.5
+
+BACPI=$(cat /sys/class/backlight/acpi_video0/brightness)
+BNVDL=$(cat /sys/class/backlight/nvidia_backlight/brightness)
+# Recalculate levels!!!
+BCONV=$(($BACPI*8+7))
+
+# Set new if changed brightness
+if [ x$BCONV != x$BNVDL ]
+then
+  echo $BCONV > /sys/class/backlight/nvidia_backlight/brightness
+fi
+
+done
+}
+
+case $1 in
+start)
+start
+;;
+stop)
+stop
+;;
+run)
+run
+;;
+*)
+echo "start|stop|run"
+;;
+esac
+
+:
+
